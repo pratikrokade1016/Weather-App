@@ -52,9 +52,7 @@ Weather App.html
 📸 Screenshots
 WebApp Preview
 
-(Add your screenshot to repo and update filename)
-
-![WeatherEdge UI](screenshot.png)
+![WeatherEdge UI](Screenshot 1.png)(Screenshot 2.png)
 
 📡 API Integration
 🔹 Google Font API (already included)
