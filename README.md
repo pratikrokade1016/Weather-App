@@ -1,26 +1,40 @@
-🌤️ Weather App
+🌦️ WeatherEdge – Advanced Weather Forecast Web App
 
-A responsive web-based Weather Application that allows users to search any location and instantly view real-time weather details such as temperature, humidity, wind speed, air quality index (PM2.5), and weather conditions.
+A fully responsive web-based weather application that allows users to search any location and instantly view real-time weather insights such as:
+✔ Temperature
+✔ Weather Condition
+✔ Air Quality Index (AQI)
+✔ Wind Speed
+✔ 5-Day Weather Forecast
+✔ Search Suggestions
+✔ Location-based Weather (GPS)
+✔ Search History (with remove option)
+✔ Forecast Chart (visual trend)
 
-🚀 Features:-
+🚀 Live Features
 
-🔍 Search weather by city/location
-🌡️ Temperature in °C
-☁️ Weather condition & description
-💧 Humidity level
-💨 Wind speed (km/h)
-🧪 Air Quality Index (PM2.5)
-⚠️ Handles invalid location input
-🎨 Responsive design & modern UI (Google Font: Montserrat)
+Feature	Description
+🔍 Search weather by city / location	
+🌡️ Temperature in °C	
+☁️ Weather condition & icon	
+📅 5-Day forecast with chart	
+💨 Wind speed (km/h)	
+🧪 Air Quality Index (AQI)	
+📍 GPS-based auto-location	
+🧠 Search suggestions (auto complete)	
+🧾 Recent searches (removable)	
+🎨 Gradient UI + Montserrat Font	
 
 🛠️ Tech Stack
 
 Technology	Purpose
 HTML	App structure
-CSS	Styling & layout
-JavaScript	Fetching weather data via API
-WeatherAPI	Real-time weather data
+Tailwind CSS	Styling & layout
+JavaScript	Logic & API handling
+Open-Meteo API	Real-time weather data (No API key required)
 Google Fonts API	UI typography (Montserrat)
+Chart.js	Forecast temperature graph
+
 📦 Installation & Setup
 🔻 Clone the Repository
 git clone https://github.com/pratikrokade1016/weather-app.git
@@ -28,37 +42,48 @@ cd weather-app
 
 ▶️ Run the App
 
-Open the file Weather App.html in your browser:
-Right-click → Open with → Browser
+Simply open the HTML file in your browser:
+➡ Right-click → Open With → Browser
+or
+➡ Drag and drop into Chrome / Edge
 
-🔑 API Setup
+Weather App.html
 
-In the HTML file, this Google Font API is already linked:
+📸 Screenshots
+WebApp Preview
+
+(Add your screenshot to repo and update filename)
+
+![WeatherEdge UI](screenshot.png)
+
+📡 API Integration
+🔹 Google Font API (already included)
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
+🔹 Weather API Used
 
-Weather API (replace with your actual API key):
-const apiKey = "your_api_key_here"; // example placeholder
+✔ No key required
+✔ Uses Open-Meteo API (Fast & Free)
+✔ Automatically fetches latitude & longitude
 
-📡 Weather API Endpoint
-http://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=LOCATION&aqi=yes
+const geoAPI = "https://geocoding-api.open-meteo.com/v1/search?name=";
+const weatherAPI = "https://api.open-meteo.com/v1/forecast";
 
-📸 UI Preview
-Screenshot here:
-![Weather App UI](<img width="1910" height="865" alt="Screenshot 2025-11-18 161049" src="https://github.com/user-attachments/assets/e6cac572-62dd-457a-968e-40e77752f09d" />
-)
+📌 Future Enhancements
 
-📌 Future Improvements
+✔ 📱 Convert to Mobile App (Flutter / React Native)
+✔ 🎙 Voice Search Integration
+✔ 🌧 Weather Animations (Rain, Clouds, Snow)
+✔ 🧭 Wind Direction Compass (UI)
+✔ 📊 Air Quality Graph
+✔ 🌍 Multi-language Support
 
-📅 5-day forecast
-📱 Fully mobile responsive
-🎨 Dark mode / Light mode
-🧊 Dynamic weather icons
-📍 Auto-location detection (GPS)
-
-🙋 Author
+👨‍💻 Author
 
 👤 Pratik Rokade
-GitHub: pratikrokade1016
+📌 GitHub: pratikrokade1016
 
-Feel free to contribute or suggest improvements! 🚀
+📧 Feel free to contribute or suggest improvements!
+
+⭐ If you like this project, don't forget to give it a star on GitHub!
+⭐ Star this repository — it motivates development!
