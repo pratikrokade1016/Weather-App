@@ -52,7 +52,8 @@ Weather App.html
 📸 Screenshots
 WebApp Preview
 
-![WeatherEdge UI](Screenshot 1.png)(Screenshot 2.png)
+![Main screen of Weather App](./Screenshot-1.png)
+![Forecast view](./Screenshot-2.png)
 
 📡 API Integration
 🔹 Google Font API (already included)
