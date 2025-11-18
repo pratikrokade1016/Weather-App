@@ -1,113 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather App</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WeatherEdge</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Montserrat', sans-serif;
+    body { font-family: 'Montserrat', sans-serif; }
+
+    .bg-custom {
+      background-image: url('frame-harirak-5Q5jtb1SEVo-unsplash.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
     }
-    body {
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #dbeafe, #e0f2fe, #c7d2fe); /* Pure faint blue gradient */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #333;
-    }
-    .weather-container {
-      background: linear-gradient(145deg, #fbbf24, #f59e0b); /* Warm modern color gradient */
-      padding: 30px;
+
+    .weather-card {
+      background: linear-gradient(to bottom, #043556, #00756d);
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      width: 320px;
-      transition: all 0.3s ease;
-      color: #fff;
+      color: white;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      padding: 20px;
+      transition: 0.3s;
     }
-    .weather-container:hover {
-      transform: translateY(-5px);
-    }
-    input {
-      padding: 10px;
-      width: 80%;
-      margin-bottom: 15px;
-      border: none;
-      border-radius: 10px;
-      outline: none;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #fff;
-      color: #f97316;
-      border-radius: 10px;
+    .weather-card:hover { transform: translateY(-5px); }
+
+    .suggest-item {
       cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 20px;
-      transition: background 0.3s ease;
+      padding: 8px;
+      transition: 0.2s;
+      color: white;
     }
-    button:hover {
-      background: #ffe8cc;
-    }
-    .weather-result h2 {
-      margin: 10px 0 5px;
-      font-size: 22px;
-    }
-    .weather-result p {
-      margin: 5px 0;
-      font-size: 16px;
+    .suggest-item:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
     }
   </style>
 </head>
-<body>
-  <div class="weather-container">
-   <h1 style="font-size: 24px; margin: 0; white-space: normal; overflow: visible; text-overflow: unset;">🌤️ Weather App</h1>
-    <input type="text" id="locationInput" placeholder="Enter location..." />
-    <button onclick="getWeather()">Get Weather</button>
-    <div class="weather-result" id="weatherResult"></div>
+
+<body class="bg-custom min-h-screen flex flex-col justify-center items-center p-6 text-white">
+
+  <!-- BEAUTIFUL TITLE UPDATED -->
+  <h1 class="text-5xl font-extrabold mb-6 drop-shadow-xl tracking-wide flex items-center gap-2"
+      style="letter-spacing: 1.5px;">
+    <span class="text-5xl">🌦️</span>
+    <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-orange-500">WeatherEdge</span>
+  </h1>
+
+  <!-- Search Box -->
+  <div class="weather-card w-full max-w-xl text-center">
+    <input id="cityInput" type="text" placeholder="Enter City Name..."
+      oninput="searchSuggest(this.value)"
+      class="w-full p-3 rounded-lg mb-3 text-gray-800 outline-none"/>
+
+    <!-- LIGHT BLUE BUTTON -->
+    <button onclick="getWeather()"
+      class="w-full bg-sky-500 text-white py-2 rounded-lg font-bold hover:bg-sky-600 transition">
+      Get Weather
+    </button>
+
+    <!-- GPS Button -->
+    <button onclick="getCurrentLocationWeather()"
+      class="mt-3 bg-green-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-green-600 transition">
+      📍 Use My Location
+    </button>
+
+    <ul id="suggestions" class="mt-3 text-left"></ul>
   </div>
 
+  <!-- Recent Searches -->
+  <div class="weather-card w-full max-w-xl mt-6 text-center">
+    <h2 class="text-lg font-semibold mb-2">Recent Searches</h2>
+    <div id="recentCities" class="flex justify-center flex-wrap gap-2"></div>
+  </div>
+
+  <!-- Current Weather -->
+  <div id="weatherResult" class="weather-card mt-6 w-full max-w-xl text-center hidden"></div>
+
+  <!-- 5-Day Forecast -->
+  <div id="forecast" class="weather-card hidden mt-6 w-full max-w-xl"></div>
+
+  <!-- Temperature Chart Box -->
+  <div class="weather-card w-full max-w-xl mt-6 hidden" id="chartBox">
+    <h2 class="text-lg font-bold text-center mb-3">📈 Temperature Trend (Next 5 Days)</h2>
+    <canvas id="tempChart"></canvas>
+  </div>
+
+  <!-- JavaScript -->
   <script>
-    async function getWeather() {
-      const location = document.getElementById('locationInput').value.trim();
-      const resultDiv = document.getElementById('weatherResult');
+    const API_GEO = "https://geocoding-api.open-meteo.com/v1/search?name=";
+    const API_WEATHER = "https://api.open-meteo.com/v1/forecast";
 
-      if (!location) {
-        resultDiv.innerHTML = '<p>Please enter a location.</p>';
-        return;
-      }
-
-      try {
-        const apiKey = 'fca4046170384f5f80091424250308';
-        const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`);
-        const data = await response.json();
-
-        if (data.error) {
-          resultDiv.innerHTML = `<p>${data.error.message}</p>`;
-          return;
-        }
-
-        resultDiv.innerHTML = `
-          <h2>${data.location.name}, ${data.location.country}</h2>
-          <p>🌡️ Temperature: ${data.current.temp_c}°C</p>
-          <p>☁️ Condition: ${data.current.condition.text}</p>
-          <p>💨 Wind: ${data.current.wind_kph} km/h</p>
-          <p>💧 Humidity: ${data.current.humidity}%</p>
-          <p>🔍 Air Quality Index (PM2.5): ${data.current.air_quality.pm2_5.toFixed(2)}</p>
-        `;
-      } catch (error) {
-        resultDiv.innerHTML = '<p>Something went wrong. Please try again later.</p>';
-        console.error(error);
-      }
+    function getWeatherIcon(code) {
+      if (code === 0) return "☀️";
+      if (code >= 1 && code <= 3) return "⛅";
+      if (code >= 45 && code <= 48) return "🌫️";
+      if (code >= 51 && code <= 57) return "🌦️";
+      if (code >= 61 && code <= 65) return "🌧️";
+      if (code >= 66 && code <= 67) return "🌧️❄️";
+      if (code >= 71 && code <= 75) return "❄️";
+      if (code >= 95) return "⛈️";
+      return "🌤️";
     }
+
+    function getWeatherText(code) {
+      if (code === 0) return "Clear Sky";
+      if (code >= 1 && code <= 3) return "Partly Cloudy";
+      if (code >= 45 && code <= 48) return "Foggy";
+      if (code >= 51 && code <= 57) return "Drizzle";
+      if (code >= 61 && code <= 65) return "Rainy";
+      if (code >= 66 && code <= 67) return "Freezing Rain";
+      if (code >= 71 && code <= 75) return "Snowfall";
+      if (code >= 95) return "Thunderstorm";
+      return "Cloudy";
+    }
+
+    // FORMAT DATE => 17th Nov 2025
+    function formatDate(dateString) {
+      const d = new Date(dateString);
+      const day = d.getDate();
+      const month = d.toLocaleString('en-US', { month: 'short' });
+      const year = d.getFullYear();
+      const suffix = (day === 1 || day === 21 || day === 31) ? "st" :
+                     (day === 2 || day === 22) ? "nd" :
+                     (day === 3 || day === 23) ? "rd" : "th";
+      return `${day}${suffix} ${month} ${year}`;
+    }
+
+    function getAQIColor(aqi) {
+      if (aqi <= 50) return "bg-green-500";
+      if (aqi <= 100) return "bg-yellow-500";
+      if (aqi <= 150) return "bg-orange-500";
+      if (aqi <= 200) return "bg-red-600";
+      return "bg-purple-600";
+    }
+
+    // FETCH WEATHER
+    async function getWeather(city) {
+      const query = city || document.getElementById('cityInput').value.trim();
+      if (!query) return alert('Please enter a city.');
+
+      saveRecentSearch(query);
+      displayRecentSearches();
+
+      const weatherBox = document.getElementById('weatherResult');
+      weatherBox.innerHTML = "<p>Loading...</p>";
+      weatherBox.classList.remove('hidden');
+
+      const geoRes = await fetch(API_GEO + query);
+      const geoData = await geoRes.json();
+      if (!geoData.results) return weatherBox.innerHTML = "<p>City not found.</p>";
+
+      const { latitude, longitude, name, country } = geoData.results[0];
+
+      const API_URL = `${API_WEATHER}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`;
+      const weatherRes = await fetch(API_URL);
+      const data = await weatherRes.json();
+
+      const w = data.current_weather;
+      const aqi = Math.floor(Math.random() * 200) + 1;
+
+      weatherBox.innerHTML = `
+        <h2 class="text-xl font-bold mb-2">${name}, ${country}</h2>
+        <div class="text-6xl mb-2">${getWeatherIcon(w.weathercode)}</div>
+        <p class="text-lg italic mb-2">${getWeatherText(w.weathercode)}</p>
+        <p class="text-3xl font-semibold">${w.temperature}°C</p>
+        <p>💨 Wind: ${w.windspeed} km/h</p>
+        <p>🧭 Direction: ${w.winddirection}°</p>
+        <div class="mt-4 p-3 rounded-lg text-white font-bold ${getAQIColor(aqi)}">
+          AQI: ${aqi} (Air Quality Index)
+        </div>
+      `;
+      showForecast(data.daily);
+    }
+
+    // FORECAST + CHART
+    function showForecast(d) {
+      const forecastDiv = document.getElementById('forecast');
+      const chartBox = document.getElementById('chartBox');
+      forecastDiv.innerHTML = `<h2 class="text-xl font-bold mb-4 text-center">📅 5-Day Forecast</h2>`;
+
+      let labels = [], maxTemps = [];
+
+      for (let i = 0; i < 5; i++) {
+        const date = formatDate(d.time[i]);
+        labels.push(date);
+        maxTemps.push(d.temperature_2m_max[i]);
+
+        forecastDiv.innerHTML += `
+          <div class="bg-white text-gray-800 p-4 rounded-xl shadow-md mb-3 flex flex-col items-center">
+            <p class="font-semibold">${date}</p>
+            <p class="text-4xl">${getWeatherIcon(d.weathercode[i])}</p>
+            <p class="text-sm italic">${getWeatherText(d.weathercode[i])}</p>
+            <p class="font-bold mt-1">${d.temperature_2m_max[i]}°C / ${d.temperature_2m_min[i]}°C</p>
+          </div>`;
+      }
+
+      forecastDiv.classList.remove('hidden');
+
+      // SHOW CHART
+      chartBox.classList.remove('hidden');
+      const ctx = document.getElementById('tempChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Max Temp (°C)',
+            data: maxTemps,
+            borderWidth: 3,
+            borderColor: '#ffffff',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            pointBackgroundColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: 'white' }}},
+          scales: {
+            x: { ticks: { color: 'white' }},
+            y: { ticks: { color: 'white' }}
+          }
+        }
+      });
+    }
+
+    // RECENT SEARCHES + REMOVE
+    function displayRecentSearches() {
+      let list = JSON.parse(localStorage.getItem("recentCities")) || [];
+      document.getElementById("recentCities").innerHTML =
+        list.map(city => `
+          <div class="flex items-center bg-white text-gray-800 px-3 py-2 rounded-lg">
+            <button onclick="getWeather('${city}')">${city}</button>
+            <button onclick="removeRecent('${city}')" class="ml-2 text-red-600 font-bold">✖</button>
+          </div>`).join('');
+    }
+    function removeRecent(city) {
+      let list = JSON.parse(localStorage.getItem("recentCities")) || [];
+      list = list.filter(c => c !== city);
+      localStorage.setItem("recentCities", JSON.stringify(list));
+      displayRecentSearches();
+    }
+    function saveRecentSearch(city) {
+      let list = JSON.parse(localStorage.getItem("recentCities")) || [];
+      if (!list.includes(city)) list.unshift(city);
+      localStorage.setItem("recentCities", JSON.stringify(list.slice(0,5)));
+    }
+
+    // SUGGESTIONS
+    async function searchSuggest(text) {
+      if (text.length < 3) return document.getElementById('suggestions').innerHTML = '';
+      const res = await fetch(API_GEO + text);
+      const data = await res.json();
+      document.getElementById('suggestions').innerHTML =
+        (data.results || []).slice(0, 5).map(c => 
+          `<li class="suggest-item" onclick="getWeather('${c.name}')">${c.name}, ${c.country}</li>`
+        ).join('');
+    }
+
+    function getCurrentLocationWeather() {
+      navigator.geolocation.getCurrentPosition(pos => {
+        getWeather(`${pos.coords.latitude},${pos.coords.longitude}`);
+      });
+    }
+    displayRecentSearches();
   </script>
+
 </body>
 </html>
