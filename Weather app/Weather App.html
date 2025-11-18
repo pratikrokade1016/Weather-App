@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe, #c7d2fe); /* Pure faint blue gradient */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #333;
+    }
+    .weather-container {
+      background: linear-gradient(145deg, #fbbf24, #f59e0b); /* Warm modern color gradient */
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 320px;
+      transition: all 0.3s ease;
+      color: #fff;
+    }
+    .weather-container:hover {
+      transform: translateY(-5px);
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #fff;
+      color: #f97316;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #ffe8cc;
+    }
+    .weather-result h2 {
+      margin: 10px 0 5px;
+      font-size: 22px;
+    }
+    .weather-result p {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-container">
+   <h1 style="font-size: 24px; margin: 0; white-space: normal; overflow: visible; text-overflow: unset;">🌤️ Weather App</h1>
+    <input type="text" id="locationInput" placeholder="Enter location..." />
+    <button onclick="getWeather()">Get Weather</button>
+    <div class="weather-result" id="weatherResult"></div>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const location = document.getElementById('locationInput').value.trim();
+      const resultDiv = document.getElementById('weatherResult');
+
+      if (!location) {
+        resultDiv.innerHTML = '<p>Please enter a location.</p>';
+        return;
+      }
+
+      try {
+        const apiKey = 'fca4046170384f5f80091424250308';
+        const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`);
+        const data = await response.json();
+
+        if (data.error) {
+          resultDiv.innerHTML = `<p>${data.error.message}</p>`;
+          return;
+        }
+
+        resultDiv.innerHTML = `
+          <h2>${data.location.name}, ${data.location.country}</h2>
+          <p>🌡️ Temperature: ${data.current.temp_c}°C</p>
+          <p>☁️ Condition: ${data.current.condition.text}</p>
+          <p>💨 Wind: ${data.current.wind_kph} km/h</p>
+          <p>💧 Humidity: ${data.current.humidity}%</p>
+          <p>🔍 Air Quality Index (PM2.5): ${data.current.air_quality.pm2_5.toFixed(2)}</p>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = '<p>Something went wrong. Please try again later.</p>';
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
